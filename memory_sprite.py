@@ -46,12 +46,15 @@ class CardView:
         self.card_color = arcade.color.GREEN
         self.card_color_flipped = arcade.color.BLUE
 
-
-        self.rectangle = arcade.rect.XYWH(
-            self.card_x,
-            self.card_y,
+        self.rectangle = arcade.rect.Rect(
+            self.card_x - (self.card_breedte // 2),
+            self.card_x + (self.card_breedte // 2),
+            self.card_y - (self.card_hoogte // 2),
+            self.card_y + (self.card_hoogte // 2),
             self.card_breedte,
-            self.card_hoogte
+            self.card_hoogte,
+            self.card_x,
+            self.card_y
         )
 
     def get_model(self) -> CardModel:
