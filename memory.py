@@ -1,3 +1,5 @@
+from curses.textpad import rectangle
+
 import arcade
 import random
 
@@ -8,6 +10,26 @@ class CardModel():
 
     def reveal(self):
         return self.value
+
+class CardView(arcade.View):
+    rectangle: arcade.Rect
+    card_breedte: int
+    card_hoogte: int
+    card_x: float
+    card_y: float
+    card_color: arcade.color
+
+    def __init__(self, card_hoogte: int, card_x: float, card_y: float, card_color):
+        self.card_hoogte = card_hoogte
+        self.card_x = card_x
+        self.card_y = card_y
+        self.card_color = card_color
+        self.rectangle = rectangle(self.card_x, self.card_y, self.card_hoogte, self.card_x, self.card_y)
+
+    def draw(self):
+        self.rectangle.center = (self.card_x, self.card_y)
+        arcade.draw_rect(self.rectangle, self.card_color)
+
 
 
 class MemoryController(arcade.Window):
@@ -20,7 +42,7 @@ class MemoryController(arcade.Window):
 
 class MemoryView(arcade.View):
     def __init__(self):
-        pass
+
 
 
 
