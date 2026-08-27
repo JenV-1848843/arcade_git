@@ -1,5 +1,4 @@
 import arcade
-import arcade.gui
 import random
 
 class CardModel():
@@ -7,11 +6,23 @@ class CardModel():
     flipped: bool
     def __init__(self, start_waarde: int = 0):
         self.flipped = False
+        self.found = False
         self.value = start_waarde
 
     def reveal(self):
         self.flipped = True
+
+    def get_value(self):
         return self.value
+
+    def unreveal(self):
+        self.flipped = False
+
+    def is_found(self):
+        return self.found
+
+    def set_found(self):
+        self.found = True
 
     def is_flipped(self):
         return self.flipped
@@ -49,7 +60,7 @@ class CardView:
         return self.model
 
     def draw(self):
-        if self.model.is_flipped():
+        if self.model.is_flipped() or self.model.is_found():
             arcade.draw_rect_filled(self.rectangle, self.card_color_flipped)
             self.draw_number()
         else:
@@ -57,12 +68,12 @@ class CardView:
 
 
     def draw_number(self):
-        waarde = self.model.reveal()
+        waarde = self.model.get_value()
 
         arcade.draw_text(
             text=waarde,
-            x=self.card_x,      # Aangepast van start_x naar x
-            y=self.card_y,      # Aangepast van start_y naar y
+            x=self.card_x,
+            y=self.card_y,
             color=arcade.color.BLACK,
             font_size=20,
             anchor_x="center",
@@ -72,6 +83,9 @@ class CardView:
 
 class MemoryModel:
     kaarten: list[CardModel]
+    def __init__(self, aantal_kaarten: int = 10):
+        self.wacht_op_terugdraaien = False
+        self.timer = 0.0
     aantal_kaarten: int
 
     def __init__(self, aantal_kaarten: int = 0):
@@ -94,6 +108,20 @@ class MemoryModel:
             for waarde in waardes:
                 self.kaarten.append(CardModel(start_waarde=waarde))
 
+
+    def update(self, delta_time: float):
+        if self.wacht_op_terugdraaien:
+            self.timer += delta_time
+            if self.timer >= 0.5:
+                for kaart in self.kaarten:
+                    if kaart.is_flipped() and not kaart.is_found():
+                        kaart.unreveal()
+                self.wacht_op_terugdraaien = False
+                self.timer = 0.0
+
+
+    def update_kaarten(self):
+        flipped_cards = []
     # def set_aantal_kaarten(self, aantal: int):
     #     self.aantal_kaarten = aantal
 
@@ -101,7 +129,22 @@ class MemoryModel:
         for kaarten in self.kaarten:
             print(kaarten.reveal())
 
-    def kaarten(self):
+        for kaart in self.kaarten:
+            if kaart.is_flipped() and not kaart.is_found():
+                flipped_cards.append(kaart)
+
+        if len(flipped_cards) == 2:
+            kaart1 = flipped_cards[0]
+            kaart2 = flipped_cards[1]
+
+            if kaart1.get_value() == kaart2.get_value():
+                kaart1.set_found()
+                kaart2.set_found()
+            else:
+                self.wacht_op_terugdraaien = True
+
+
+    def get_kaarten(self):
         return self.kaarten
 
 class MemoryView:
@@ -113,16 +156,13 @@ class MemoryView:
     afstand_linkerkant: int
     aantal_kolommen: int
 
-    def __init__(self, model: MemoryModel):
-        super().__init__()
-
+    def __init__(self, model: MemoryModel, breedte: int):
         self.kaartenviews = []
         self.kaartbreedte = 50
         self.kaarthoogte = 70
         self.marge = 10
         self.afstand_linkerkant = 50
         self.hoogte_tov_onderkant = 100
-        breedte = 400
         self.aantal_kolommen = breedte // (self.kaartbreedte + self.marge)
         for index, kaart in enumerate(model.kaarten):
             rij = index // self.aantal_kolommen
@@ -139,19 +179,12 @@ class MemoryView:
             kaart.draw()
 
     def flipt_kaart_op_positie(self, x: float, y: float):
-        """
-        Omgekeerde berekening van de layout-logica in __init__:
-        van een klikpositie (x, y) terug naar de bijhorende CardView.
-        Geeft None terug als er op die plek geen kaart ligt.
-        """
-        # Stap 1: reken de klikpositie om naar een (kolom, rij)-index
         kolom = (x - self.afstand_linkerkant + self.kaartbreedte // 2) // (self.kaartbreedte + self.marge)
         rij = (y - self.hoogte_tov_onderkant + self.kaarthoogte // 2) // (self.kaarthoogte + self.marge)
 
         if kolom < 0 or rij < 0:
             return None
 
-        # Stap 2: reken (kolom, rij) om naar de index in de lijst
         index = int(rij) * self.aantal_kolommen + int(kolom)
 
         if index < 0 or index >= len(self.kaartenviews):
@@ -159,7 +192,6 @@ class MemoryView:
 
         kaartview = self.kaartenviews[index]
 
-        # Stap 3: check of de klik écht binnen de kaart valt (en niet in de marge ernaast)
         binnen_x = kaartview.card_x - kaartview.card_breedte / 2 <= x <= kaartview.card_x + kaartview.card_breedte / 2
         binnen_y = kaartview.card_y - kaartview.card_hoogte / 2 <= y <= kaartview.card_y + kaartview.card_hoogte / 2
 
@@ -172,8 +204,8 @@ class MemoryController(arcade.Window):
     model: MemoryModel
     memory_view: MemoryView
 
-    def __init__(self, model, view):
-        super().__init__(400, 450, "MVC Memory", pixel_perfect=True)
+    def __init__(self, model, view, breedte: int, hoogte: int):
+        super().__init__(breedte, hoogte, "MVC Memory", pixel_perfect=True)
         arcade.set_background_color(arcade.color.WHITE)
         self.model = model
         self.memory_view = view
@@ -208,10 +240,21 @@ class MemoryController(arcade.Window):
         self.memory_view.on_draw()
         self.manager.draw()
 
+    def on_update(self, delta_time: float):
+        self.model.update(delta_time)
+
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
+            if self.model.wacht_op_terugdraaien:
+                return
+
+            open_kaarten = [k for k in self.model.get_kaarten() if k.is_flipped() and not k.is_found()]
+            if len(open_kaarten) >= 2:
+                return
+
             print(f"Left click at ({x}, {y})")
             self.memory_view.flipt_kaart_op_positie(x, y)
+            self.model.update_kaarten()
 
     def get_input_number(self):
         try:
@@ -220,11 +263,10 @@ class MemoryController(arcade.Window):
             return 0
 
 if __name__ == "__main__":
+    breedte = 400
+    hoogte = 450
     model = MemoryModel()
-    view = MemoryView(model)
-    controller = MemoryController(model, view)
-
-
-    # controller.show_view(view)
+    view = MemoryView(model, breedte)
+    controller = MemoryController(model, view, breedte, hoogte)
 
     arcade.run()
