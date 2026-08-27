@@ -86,8 +86,11 @@ class MemoryModel:
     kaarten: list[CardModel]
     aantal_kaarten: int
     def __init__(self, aantal_kaarten: int = 10):
+        self.set_kaarten(aantal_kaarten)
         self.wacht_op_terugdraaien = False
         self.timer = 0.0
+
+    def set_kaarten(self, aantal_kaarten: int):
         if aantal_kaarten % 2 == 0:
             self.kaarten = []
             self.aantal_kaarten = aantal_kaarten
@@ -220,6 +223,7 @@ class MemoryController(arcade.Window):
         def on_click_submit(event):
             number = self.get_input_number()
             self.model.set_kaarten(number)
+            self.memory_view = MemoryView(self.model, breedte)
             # self.model.set_aantal_kaarten(number)
 
         # Anchor it somewhere on screen
