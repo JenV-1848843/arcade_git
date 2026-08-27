@@ -8,6 +8,21 @@ class MemoryController(arcade.Window):
     def on_draw(self):
         self.clear()
 
+class MemoryView(arcade.View):
+    def __init__(self):
+        super().__init__()
+
+class MemoryModel(arcade.View):
+    def __init__(self):
+        self.x : float
+        self.y : float
+        self.value : int
+
+    def reveal(self):
+        return self.value
+
+
+
 if __name__ == "__main__":
     controller = MemoryController()
     arcade.run()
