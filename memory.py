@@ -3,11 +3,19 @@ import random
 
 class CardModel():
     value: int
+    flipped: bool
     def __init__(self, start_waarde: int = 0):
+        self.flipped = False
         self.value = start_waarde
 
     def reveal(self):
+        self.flipped = True
         return self.value
+
+    def is_flipped(self):
+        return self.flipped
+
+
 
 class CardView:
     rectangle: arcade.Rect
@@ -23,6 +31,7 @@ class CardView:
         self.card_x = x
         self.card_y = y
         self.card_color = arcade.color.GREEN
+        self.card_color_flipped = arcade.color.BLUE
 
         self.rectangle = arcade.rect.Rect(
             self.card_x - (self.card_breedte // 2),
@@ -36,7 +45,25 @@ class CardView:
         )
 
     def draw(self):
-        arcade.draw_rect_filled(self.rectangle, self.card_color)
+        if self.model.is_flipped():
+            arcade.draw_rect_filled(self.rectangle, self.card_color_flipped)
+            self.draw_number()
+        else:
+            arcade.draw_rect_filled(self.rectangle, self.card_color)
+
+
+    def draw_number(self):
+        waarde = self.model.reveal()
+
+        arcade.draw_text(
+            text=waarde,
+            x=self.card_x,      # Aangepast van start_x naar x
+            y=self.card_y,      # Aangepast van start_y naar y
+            color=arcade.color.BLACK,
+            font_size=20,
+            anchor_x="center",
+            anchor_y="center"
+        )
 
 
 class MemoryModel:
@@ -116,7 +143,6 @@ class MemoryController(arcade.Window):
 
 if __name__ == "__main__":
     model = MemoryModel()
-    model.print_kaarten()
     view = MemoryView(model)
     controller = MemoryController(model, view)
 
