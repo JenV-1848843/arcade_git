@@ -1,4 +1,14 @@
 import arcade
+import random
+
+class CardModel():
+    value: int
+    def __init__(self, start_waarde: int = 0):
+        self.value = start_waarde
+
+    def reveal(self):
+        return self.value
+
 
 class MemoryController(arcade.Window):
     def __init__(self):
@@ -10,19 +20,39 @@ class MemoryController(arcade.Window):
 
 class MemoryView(arcade.View):
     def __init__(self):
-        super().__init__()
+        pass
 
-class MemoryModel(arcade.View):
-    def __init__(self, start_waarde = 0):
-        self.x : float= 0.0
-        self.y : float= 0.0
-        self.value : int = start_waarde
 
-    def reveal(self):
-        return self.value
+
+class MemoryModel:
+    kaarten: list[CardModel]
+    def __init__(self, aantal_kaarten: int = 10):
+        if aantal_kaarten % 2 == 0:
+            self.kaarten = []
+
+            aantal_paren = aantal_kaarten // 2
+
+            waardes = []
+            for i in range(1, aantal_paren + 1):
+                waardes.append(i)
+                waardes.append(i)
+
+            random.shuffle(waardes)
+
+            for waarde in waardes:
+                self.kaarten.append(CardModel(start_waarde=waarde))
+
+    def print_kaarten(self):
+        for kaarten in self.kaarten:
+            print(kaarten.reveal())
+
 
 
 
 if __name__ == "__main__":
+    model = MemoryModel()
+    model.print_kaarten()
     controller = MemoryController()
+    view = MemoryView()
+
     arcade.run()
