@@ -16,16 +16,27 @@ class CardView:
     card_x: float
     card_y: float
 
-    def __init__(self,card_model: CardModel):
-        self.card_hoogte = 50
-        self.card_x = 20
-        self.card_y = 20
+    def __init__(self, card_model: CardModel):
+        self.model = card_model
+        self.card_breedte = 50
+        self.card_hoogte = 70
+        self.card_x = 50
+        self.card_y = 50
         self.card_color = arcade.color.GREEN
-        self.rectangle = arcade.Rect(self.card_x, self.card_y, self.card_hoogte, self.card_x, self.card_y)
+
+        self.rectangle = arcade.rect.Rect(
+            self.card_x - (self.card_breedte // 2),
+            self.card_x + (self.card_breedte // 2),
+            self.card_y - (self.card_hoogte // 2),
+            self.card_y + (self.card_hoogte // 2),
+            self.card_breedte,
+            self.card_hoogte,
+            self.card_x,
+            self.card_y
+        )
 
     def draw(self):
-        self.rectangle.center = (self.card_x, self.card_y)
-        arcade.draw_rect(self.rectangle, self.card_color)
+        arcade.draw_rect_filled(self.rectangle, self.card_color)
 
 
 
@@ -33,9 +44,6 @@ class MemoryController(arcade.Window):
     def __init__(self):
         super().__init__(400, 450, "MVC Memory", pixel_perfect=True)
         arcade.set_background_color(arcade.color.WHITE)
-
-    def on_draw(self):
-        self.clear()
 
 class MemoryModel:
     kaarten: list[CardModel]
@@ -62,14 +70,16 @@ class MemoryModel:
     def kaarten(self):
         return self.kaarten
 
-class MemoryView:
+class MemoryView(arcade.View):
     kaartenviews: list[CardView]
     def __init__(self, model: MemoryModel):
+        super().__init__()
+        self.kaartenviews = []
         for kaart in model.kaarten:
             kaartview = CardView(kaart)
             self.kaartenviews.append(kaartview)
 
-    def draw(self):
+    def on_draw(self):
         self.clear()
         for kaart in self.kaartenviews:
             kaart.draw()
@@ -79,7 +89,11 @@ class MemoryView:
 if __name__ == "__main__":
     model = MemoryModel()
     model.print_kaarten()
-    view = MemoryView(model)
+
     controller = MemoryController()
+
+    view = MemoryView(model)
+
+    controller.show_view(view)
 
     arcade.run()
