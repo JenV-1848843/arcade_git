@@ -1,4 +1,5 @@
 import arcade
+import arcade.gui
 import random
 
 class CardModel():
@@ -83,15 +84,10 @@ class CardView:
 
 class MemoryModel:
     kaarten: list[CardModel]
+    aantal_kaarten: int
     def __init__(self, aantal_kaarten: int = 10):
         self.wacht_op_terugdraaien = False
         self.timer = 0.0
-    aantal_kaarten: int
-
-    def __init__(self, aantal_kaarten: int = 0):
-        self.set_kaarten(aantal_kaarten)
-
-    def set_kaarten(self, aantal_kaarten = 0):
         if aantal_kaarten % 2 == 0:
             self.kaarten = []
             self.aantal_kaarten = aantal_kaarten
