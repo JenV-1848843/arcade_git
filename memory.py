@@ -16,12 +16,12 @@ class CardView:
     card_x: float
     card_y: float
 
-    def __init__(self, card_model: CardModel):
+    def __init__(self, card_model: CardModel, x: float, y: float, card_breedte: int, card_hoogte: int):
         self.model = card_model
-        self.card_breedte = 50
-        self.card_hoogte = 70
-        self.card_x = 50
-        self.card_y = 50
+        self.card_breedte = card_breedte
+        self.card_hoogte = card_hoogte
+        self.card_x = x
+        self.card_y = y
         self.card_color = arcade.color.GREEN
 
         self.rectangle = arcade.rect.Rect(
@@ -81,11 +81,31 @@ class MemoryModel:
 
 class MemoryView(arcade.View):
     kaartenviews: list[CardView]
+    kaartbreedte: int
+    kaarthoogte: int
+    marge: int
+    hoogte_tov_onderkant: int
+    afstand_linkerkant: int
+
     def __init__(self, model: MemoryModel):
         super().__init__()
+        
         self.kaartenviews = []
-        for kaart in model.kaarten:
-            kaartview = CardView(kaart)
+        self.kaartbreedte = 50
+        self.kaarthoogte = 70
+        self.marge = 10
+        self.afstand_linkerkant = 50
+        self.hoogte_tov_onderkant = 100
+        for index, kaart in enumerate(model.kaarten):
+            breedte = arcade.get_window().width
+            aantal_kolommen = breedte // (self.kaartbreedte + self.marge)
+            rij = index // aantal_kolommen
+            kolom = index % aantal_kolommen
+
+            translate_x = self.afstand_linkerkant + (kolom * (self.kaartbreedte + self.marge))
+            translate_y = self.hoogte_tov_onderkant + (rij * (self.kaarthoogte + self.marge))
+
+            kaartview = CardView(kaart, translate_x, translate_y, self.kaartbreedte, self.kaarthoogte)
             self.kaartenviews.append(kaartview)
 
     def on_draw(self):
