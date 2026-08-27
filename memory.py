@@ -44,6 +44,9 @@ class CardView:
             self.card_y
         )
 
+    def get_model(self) -> CardModel:
+        return self.model
+
     def draw(self):
         if self.model.is_flipped():
             arcade.draw_rect_filled(self.rectangle, self.card_color_flipped)
@@ -98,6 +101,7 @@ class MemoryView:
     marge: int
     hoogte_tov_onderkant: int
     afstand_linkerkant: int
+    aantal_kolommen: int
 
     def __init__(self, model: MemoryModel):
         super().__init__()
@@ -108,11 +112,11 @@ class MemoryView:
         self.marge = 10
         self.afstand_linkerkant = 50
         self.hoogte_tov_onderkant = 100
+        breedte = 400
+        self.aantal_kolommen = breedte // (self.kaartbreedte + self.marge)
         for index, kaart in enumerate(model.kaarten):
-            breedte = 400
-            aantal_kolommen = breedte // (self.kaartbreedte + self.marge)
-            rij = index // aantal_kolommen
-            kolom = index % aantal_kolommen
+            rij = index // self.aantal_kolommen
+            kolom = index % self.aantal_kolommen
 
             translate_x = self.afstand_linkerkant + (kolom * (self.kaartbreedte + self.marge))
             translate_y = self.hoogte_tov_onderkant + (rij * (self.kaarthoogte + self.marge))
@@ -123,6 +127,36 @@ class MemoryView:
     def on_draw(self):
         for kaart in self.kaartenviews:
             kaart.draw()
+
+    def flipt_kaart_op_positie(self, x: float, y: float):
+        """
+        Omgekeerde berekening van de layout-logica in __init__:
+        van een klikpositie (x, y) terug naar de bijhorende CardView.
+        Geeft None terug als er op die plek geen kaart ligt.
+        """
+        # Stap 1: reken de klikpositie om naar een (kolom, rij)-index
+        kolom = (x - self.afstand_linkerkant + self.kaartbreedte // 2) // (self.kaartbreedte + self.marge)
+        rij = (y - self.hoogte_tov_onderkant + self.kaarthoogte // 2) // (self.kaarthoogte + self.marge)
+
+        if kolom < 0 or rij < 0:
+            return None
+
+        # Stap 2: reken (kolom, rij) om naar de index in de lijst
+        index = int(rij) * self.aantal_kolommen + int(kolom)
+
+        if index < 0 or index >= len(self.kaartenviews):
+            return None
+
+        kaartview = self.kaartenviews[index]
+
+        # Stap 3: check of de klik écht binnen de kaart valt (en niet in de marge ernaast)
+        binnen_x = kaartview.card_x - kaartview.card_breedte / 2 <= x <= kaartview.card_x + kaartview.card_breedte / 2
+        binnen_y = kaartview.card_y - kaartview.card_hoogte / 2 <= y <= kaartview.card_y + kaartview.card_hoogte / 2
+
+        if not (binnen_x and binnen_y):
+            return None
+
+        kaartview.get_model().reveal()
 
 class MemoryController(arcade.Window):
     model: MemoryModel
@@ -138,6 +172,13 @@ class MemoryController(arcade.Window):
         self.clear()
         self.memory_view.on_draw()
 
+    def on_mouse_press(self, x, y, button, modifiers):
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            print(f"Left click at ({x}, {y})")
+            self.memory_view.flipt_kaart_op_positie(x, y)
+            # example: check if click landed inside a specific area
+            # if 100 <= x <= 200 and 150 <= y <= 250:
+            #     self.increase()
 
 
 
