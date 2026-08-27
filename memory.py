@@ -1,5 +1,3 @@
-from curses.textpad import rectangle
-
 import arcade
 import random
 
@@ -19,12 +17,12 @@ class CardView(arcade.View):
     card_y: float
     card_color: arcade.color
 
-    def __init__(self, card_hoogte: int, card_x: float, card_y: float, card_color):
-        self.card_hoogte = card_hoogte
-        self.card_x = card_x
-        self.card_y = card_y
-        self.card_color = card_color
-        self.rectangle = rectangle(self.card_x, self.card_y, self.card_hoogte, self.card_x, self.card_y)
+    def __init__(self,card_model: CardModel):
+        self.card_hoogte = 50
+        self.card_x = 20
+        self.card_y = 20
+        self.card_color = arcade.color.GREEN
+        self.rectangle = arcade.Rect(self.card_x, self.card_y, self.card_hoogte, self.card_x, self.card_y)
 
     def draw(self):
         self.rectangle.center = (self.card_x, self.card_y)
@@ -40,8 +38,8 @@ class MemoryController(arcade.Window):
     def on_draw(self):
         self.clear()
 
-class MemoryView(arcade.View):
-    def __init__(self):
+
+
 
 
 
@@ -68,13 +66,27 @@ class MemoryModel:
         for kaarten in self.kaarten:
             print(kaarten.reveal())
 
+    def kaarten(self):
+        return self.kaarten
+
+class MemoryView(arcade.View):
+    kaartenviews: list[CardView]
+    def __init__(self, model: MemoryModel):
+        for kaart in model.kaarten:
+            kaartview = CardView(kaart)
+            self.kaartenviews.append(kaartview)
+
+    def draw(self):
+        self.clear()
+        for kaart in self.kaartenviews:
+            kaart.draw()
 
 
 
 if __name__ == "__main__":
     model = MemoryModel()
     model.print_kaarten()
+    view = MemoryView(model)
     controller = MemoryController()
-    view = MemoryView()
 
     arcade.run()
