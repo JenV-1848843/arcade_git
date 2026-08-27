@@ -39,21 +39,6 @@ class CardView:
         arcade.draw_rect_filled(self.rectangle, self.card_color)
 
 
-
-class MemoryController(arcade.Window):
-    model: MemoryModel
-    view: MemoryView
-
-    def __init__(self, model, view):
-        super().__init__(400, 450, "MVC Memory", pixel_perfect=True)
-        arcade.set_background_color(arcade.color.WHITE)
-        self.model = model
-        self.view = view
-
-    def on_draw(self):
-        self.clear()
-        self.view.on_draw()
-
 class MemoryModel:
     kaarten: list[CardModel]
     def __init__(self, aantal_kaarten: int = 10):
@@ -79,7 +64,7 @@ class MemoryModel:
     def kaarten(self):
         return self.kaarten
 
-class MemoryView(arcade.View):
+class MemoryView:
     kaartenviews: list[CardView]
     kaartbreedte: int
     kaarthoogte: int
@@ -89,7 +74,7 @@ class MemoryView(arcade.View):
 
     def __init__(self, model: MemoryModel):
         super().__init__()
-        
+
         self.kaartenviews = []
         self.kaartbreedte = 50
         self.kaarthoogte = 70
@@ -97,7 +82,7 @@ class MemoryView(arcade.View):
         self.afstand_linkerkant = 50
         self.hoogte_tov_onderkant = 100
         for index, kaart in enumerate(model.kaarten):
-            breedte = arcade.get_window().width
+            breedte = 400
             aantal_kolommen = breedte // (self.kaartbreedte + self.marge)
             rij = index // aantal_kolommen
             kolom = index % aantal_kolommen
@@ -109,9 +94,23 @@ class MemoryView(arcade.View):
             self.kaartenviews.append(kaartview)
 
     def on_draw(self):
-        self.clear()
         for kaart in self.kaartenviews:
             kaart.draw()
+
+class MemoryController(arcade.Window):
+    model: MemoryModel
+    memory_view: MemoryView
+
+    def __init__(self, model, view):
+        super().__init__(400, 450, "MVC Memory", pixel_perfect=True)
+        arcade.set_background_color(arcade.color.WHITE)
+        self.model = model
+        self.memory_view = view
+
+    def on_draw(self):
+        self.clear()
+        self.memory_view.on_draw()
+
 
 
 
