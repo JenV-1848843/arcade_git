@@ -188,7 +188,8 @@ class MemoryView:
         if not (binnen_x and binnen_y):
             return None
 
-        kaartview.get_model().reveal()
+        # kaartview.get_model().reveal()
+        return kaartview.get_model()
 
 class MemoryController(arcade.Window):
     model: MemoryModel
@@ -244,8 +245,10 @@ class MemoryController(arcade.Window):
                 return
 
             print(f"Left click at ({x}, {y})")
-            self.memory_view.flipt_kaart_op_positie(x, y)
-            self.model.update_kaarten()
+            card_model = self.memory_view.flipt_kaart_op_positie(x, y)
+            if card_model:
+                card_model.reveal()
+                self.model.update_kaarten()
 
     def get_input_number(self):
         try:
