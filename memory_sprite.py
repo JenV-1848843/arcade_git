@@ -29,57 +29,36 @@ class CardModel():
         return self.flipped
 
 
-
-class CardView:
-    rectangle: arcade.Rect
-    card_breedte: int
-    card_hoogte: int
-    card_x: float
-    card_y: float
-
+class CardView(arcade.SpriteSolidColor):
     def __init__(self, card_model: CardModel, x: float, y: float, card_breedte: int, card_hoogte: int):
+        super().__init__(card_breedte, card_hoogte, arcade.color.GREEN)
         self.model = card_model
-        self.card_breedte = card_breedte
-        self.card_hoogte = card_hoogte
-        self.card_x = x
-        self.card_y = y
+        self.center_x = x
+        self.center_y = y
         self.card_color = arcade.color.GREEN
         self.card_color_flipped = arcade.color.BLUE
-
-        self.rectangle = arcade.rect.Rect(
-            self.card_x - (self.card_breedte // 2),
-            self.card_x + (self.card_breedte // 2),
-            self.card_y - (self.card_hoogte // 2),
-            self.card_y + (self.card_hoogte // 2),
-            self.card_breedte,
-            self.card_hoogte,
-            self.card_x,
-            self.card_y
-        )
 
     def get_model(self) -> CardModel:
         return self.model
 
-    def draw(self):
+    def update_color(self):
         if self.model.is_flipped() or self.model.is_found():
-            arcade.draw_rect_filled(self.rectangle, self.card_color_flipped)
-            self.draw_number()
+            self.color = self.card_color_flipped
         else:
-            arcade.draw_rect_filled(self.rectangle, self.card_color)
-
+            self.color = self.card_color
 
     def draw_number(self):
-        waarde = self.model.get_value()
-
-        arcade.draw_text(
-            text=waarde,
-            x=self.card_x,
-            y=self.card_y,
-            color=arcade.color.BLACK,
-            font_size=20,
-            anchor_x="center",
-            anchor_y="center"
-        )
+        if self.model.is_flipped() or self.model.is_found():
+            waarde = self.model.get_value()
+            arcade.draw_text(
+                text=waarde,
+                x=self.center_x,
+                y=self.center_y,
+                color=arcade.color.BLACK,
+                font_size=20,
+                anchor_x="center",
+                anchor_y="center"
+            )
 
 
 class MemoryModel:
@@ -141,7 +120,7 @@ class MemoryModel:
         return self.kaarten
 
 class MemoryView:
-    kaartenviews: list[CardView]
+    kaartenviews: arcade.SpriteList
     kaartbreedte: int
     kaarthoogte: int
     marge: int
@@ -150,7 +129,7 @@ class MemoryView:
     aantal_kolommen: int
 
     def __init__(self, model: MemoryModel, breedte: int):
-        self.kaartenviews = []
+        self.kaartenviews = arcade.SpriteList()
         self.kaartbreedte = 50
         self.kaarthoogte = 70
         self.marge = 10
@@ -169,29 +148,19 @@ class MemoryView:
 
     def on_draw(self):
         for kaart in self.kaartenviews:
-            kaart.draw()
+            kaart.update_color()
+
+        self.kaartenviews.draw()
+
+        for kaart in self.kaartenviews:
+            kaart.draw_number()
 
     def flipt_kaart_op_positie(self, x: float, y: float):
-        kolom = (x - self.afstand_linkerkant + self.kaartbreedte // 2) // (self.kaartbreedte + self.marge)
-        rij = (y - self.hoogte_tov_onderkant + self.kaarthoogte // 2) // (self.kaarthoogte + self.marge)
-
-        if kolom < 0 or rij < 0:
-            return None
-
-        index = int(rij) * self.aantal_kolommen + int(kolom)
-
-        if index < 0 or index >= len(self.kaartenviews):
-            return None
-
-        kaartview = self.kaartenviews[index]
-
-        binnen_x = kaartview.card_x - kaartview.card_breedte / 2 <= x <= kaartview.card_x + kaartview.card_breedte / 2
-        binnen_y = kaartview.card_y - kaartview.card_hoogte / 2 <= y <= kaartview.card_y + kaartview.card_hoogte / 2
-
-        if not (binnen_x and binnen_y):
-            return None
-
-        kaartview.get_model().reveal()
+        clicked_sprites = arcade.get_sprites_at_point((x, y), self.kaartenviews)
+        if clicked_sprites:
+            geklikte_view: CardView = clicked_sprites[0]
+            geklikte_view.model.reveal()
+        return None
 
 class MemoryController(arcade.Window):
     model: MemoryModel
@@ -205,7 +174,6 @@ class MemoryController(arcade.Window):
         self.manager = arcade.gui.UIManager()
         self.manager.enable()
 
-        # The actual input field
         self.number_input = arcade.gui.UIInputText(
             x=100, y=150, width=150, height=40,
             text="0", font_size=18,
@@ -215,15 +183,12 @@ class MemoryController(arcade.Window):
         )
         self.submit_button = arcade.gui.UIFlatButton(text="Begin", width=150, height=40)
 
-        # wire up the click handler
         @self.submit_button.event("on_click")
         def on_click_submit(event):
             number = self.get_input_number()
             self.model.set_kaarten(number)
             self.memory_view = MemoryView(self.model, breedte)
-            # self.model.set_aantal_kaarten(number)
 
-        # Anchor it somewhere on screen
         anchor = arcade.gui.UIAnchorLayout()
         anchor.add(child=self.number_input, anchor_x="left", anchor_y="top")
         anchor.add(child=self.submit_button, anchor_x="right", anchor_y="top")
@@ -247,8 +212,10 @@ class MemoryController(arcade.Window):
                 return
 
             print(f"Left click at ({x}, {y})")
-            self.memory_view.flipt_kaart_op_positie(x, y)
-            self.model.update_kaarten()
+            geklinkt_model = self.memory_view.flipt_kaart_op_positie(x, y)
+            if geklinkt_model is not None:
+                geklinkt_model.reveal()
+                self.model.update_kaarten()
 
     def get_input_number(self):
         try:
@@ -262,6 +229,5 @@ if __name__ == "__main__":
     model = MemoryModel()
     view = MemoryView(model, breedte)
     controller = MemoryController(model, view, breedte, hoogte)
-    controller.view
 
     arcade.run()
