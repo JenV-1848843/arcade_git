@@ -131,7 +131,7 @@ class MemoryModel:
                 self.wacht_op_terugdraaien = True
 
 
-    def kaarten(self):
+    def get_kaarten(self):
         return self.kaarten
 
 class MemoryView:
@@ -144,8 +144,6 @@ class MemoryView:
     aantal_kolommen: int
 
     def __init__(self, model: MemoryModel, breedte: int):
-        super().__init__()
-
         self.kaartenviews = []
         self.kaartbreedte = 50
         self.kaarthoogte = 70
@@ -211,7 +209,7 @@ class MemoryController(arcade.Window):
             if self.model.wacht_op_terugdraaien:
                 return
 
-            open_kaarten = [k for k in self.model.kaarten if k.is_flipped() and not k.is_found()]
+            open_kaarten = [k for k in self.model.get_kaarten() if k.is_flipped() and not k.is_found()]
             if len(open_kaarten) >= 2:
                 return
 
