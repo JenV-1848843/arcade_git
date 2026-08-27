@@ -41,9 +41,18 @@ class CardView:
 
 
 class MemoryController(arcade.Window):
-    def __init__(self):
+    model: MemoryModel
+    view: MemoryView
+
+    def __init__(self, model, view):
         super().__init__(400, 450, "MVC Memory", pixel_perfect=True)
         arcade.set_background_color(arcade.color.WHITE)
+        self.model = model
+        self.view = view
+
+    def on_draw(self):
+        self.clear()
+        self.view.on_draw()
 
 class MemoryModel:
     kaarten: list[CardModel]
@@ -89,11 +98,10 @@ class MemoryView(arcade.View):
 if __name__ == "__main__":
     model = MemoryModel()
     model.print_kaarten()
-
-    controller = MemoryController()
-
     view = MemoryView(model)
+    controller = MemoryController(model, view)
 
-    controller.show_view(view)
+
+    # controller.show_view(view)
 
     arcade.run()
