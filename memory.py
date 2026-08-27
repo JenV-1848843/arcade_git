@@ -9,13 +9,12 @@ class CardModel():
     def reveal(self):
         return self.value
 
-class CardView(arcade.View):
+class CardView:
     rectangle: arcade.Rect
     card_breedte: int
     card_hoogte: int
     card_x: float
     card_y: float
-    card_color: arcade.color
 
     def __init__(self,card_model: CardModel):
         self.card_hoogte = 50
@@ -37,12 +36,6 @@ class MemoryController(arcade.Window):
 
     def on_draw(self):
         self.clear()
-
-
-
-
-
-
 
 class MemoryModel:
     kaarten: list[CardModel]
@@ -69,7 +62,7 @@ class MemoryModel:
     def kaarten(self):
         return self.kaarten
 
-class MemoryView(arcade.View):
+class MemoryView:
     kaartenviews: list[CardView]
     def __init__(self, model: MemoryModel):
         for kaart in model.kaarten:
