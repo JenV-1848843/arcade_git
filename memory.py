@@ -13,10 +13,10 @@ class MemoryView(arcade.View):
         super().__init__()
 
 class MemoryModel(arcade.View):
-    def __init__(self):
-        self.x : float
-        self.y : float
-        self.value : int
+    def __init__(self, start_waarde = 0):
+        self.x : float= 0.0
+        self.y : float= 0.0
+        self.value : int = start_waarde
 
     def reveal(self):
         return self.value
