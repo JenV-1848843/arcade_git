@@ -122,9 +122,6 @@ class MemoryModel:
     def update_kaarten(self):
         flipped_cards = []
 
-        for kaarten in self.kaarten:
-            print(kaarten.reveal())
-
         for kaart in self.kaarten:
             if kaart.is_flipped() and not kaart.is_found():
                 flipped_cards.append(kaart)
