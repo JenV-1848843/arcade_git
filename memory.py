@@ -1,4 +1,5 @@
 import arcade
+import arcade.gui
 import random
 
 class CardModel():
@@ -71,9 +72,15 @@ class CardView:
 
 class MemoryModel:
     kaarten: list[CardModel]
-    def __init__(self, aantal_kaarten: int = 10):
+    aantal_kaarten: int
+
+    def __init__(self, aantal_kaarten: int = 0):
+        self.set_kaarten(aantal_kaarten)
+
+    def set_kaarten(self, aantal_kaarten = 0):
         if aantal_kaarten % 2 == 0:
             self.kaarten = []
+            self.aantal_kaarten = aantal_kaarten
 
             aantal_paren = aantal_kaarten // 2
 
@@ -86,6 +93,9 @@ class MemoryModel:
 
             for waarde in waardes:
                 self.kaarten.append(CardModel(start_waarde=waarde))
+
+    # def set_aantal_kaarten(self, aantal: int):
+    #     self.aantal_kaarten = aantal
 
     def print_kaarten(self):
         for kaarten in self.kaarten:
@@ -167,20 +177,47 @@ class MemoryController(arcade.Window):
         arcade.set_background_color(arcade.color.WHITE)
         self.model = model
         self.memory_view = view
+        self.manager = arcade.gui.UIManager()
+        self.manager.enable()
+
+        # The actual input field
+        self.number_input = arcade.gui.UIInputText(
+            x=100, y=150, width=150, height=40,
+            text="0", font_size=18,
+            text_color=arcade.color.BLACK,
+            border_color=arcade.color.BLACK,
+            caret_color=arcade.color.BLACK,
+        )
+        self.submit_button = arcade.gui.UIFlatButton(text="Begin", width=150, height=40)
+
+        # wire up the click handler
+        @self.submit_button.event("on_click")
+        def on_click_submit(event):
+            number = self.get_input_number()
+            self.model.set_kaarten(number)
+            # self.model.set_aantal_kaarten(number)
+
+        # Anchor it somewhere on screen
+        anchor = arcade.gui.UIAnchorLayout()
+        anchor.add(child=self.number_input, anchor_x="left", anchor_y="top")
+        anchor.add(child=self.submit_button, anchor_x="right", anchor_y="top")
+        self.manager.add(anchor)
 
     def on_draw(self):
         self.clear()
         self.memory_view.on_draw()
+        self.manager.draw()
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
             print(f"Left click at ({x}, {y})")
             self.memory_view.flipt_kaart_op_positie(x, y)
-            # example: check if click landed inside a specific area
-            # if 100 <= x <= 200 and 150 <= y <= 250:
-            #     self.increase()
 
-
+    def get_input_number(self):
+        try:
+            return int(self.number_input.text)
+        except ValueError:
+            return 0
 
 if __name__ == "__main__":
     model = MemoryModel()
