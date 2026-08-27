@@ -122,10 +122,7 @@ class MemoryModel:
 
     def update_kaarten(self):
         flipped_cards = []
-    # def set_aantal_kaarten(self, aantal: int):
-    #     self.aantal_kaarten = aantal
 
-    def print_kaarten(self):
         for kaarten in self.kaarten:
             print(kaarten.reveal())
 
