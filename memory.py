@@ -37,6 +37,11 @@ class MemoryController(arcade.Window):
     def on_draw(self):
         self.clear()
 
+    def on_mouse_press(self, x, y, button, modifiers):
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            print(f"Left click at ({x}, {y})")
+            #TODO pass coordinates to view
+
 class MemoryModel:
     kaarten: list[CardModel]
     def __init__(self, aantal_kaarten: int = 10):
