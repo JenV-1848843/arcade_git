@@ -1,6 +1,6 @@
 import random
 import arcade
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 # --- MODEL ---
 class FieldModel:
@@ -64,22 +64,10 @@ class TictactoeView:
                 self.board_sprites.append(fieldView)
 
     def draw(self):
-        self.board_sprites.draw()
-
         for sprite in self.board_sprites:
-            waarde = sprite.model.waarde
+            sprite.update_if_needed()
 
-            if waarde is not None:
-                kleur = arcade.color.BLUE if waarde == "X" else arcade.color.RED
-                arcade.draw_text(
-                    waarde,
-                    sprite.center_x,
-                    sprite.center_y,
-                    kleur,
-                    60,
-                    anchor_x="center",
-                    anchor_y="center"
-                )
+        self.board_sprites.draw()
 
         if self.model.winner:
             arcade.draw_text(
@@ -96,12 +84,37 @@ class FieldView(arcade.Sprite):
         super().__init__()
         self.block_size = block_size
         self.model = model
+
+        self.current_drawn_value = None
+
         self.texture = self.make_field_texture()
+
+    def update_if_needed(self):
+        if self.current_drawn_value != self.model.waarde:
+            self.texture = self.make_field_texture()
 
     def make_field_texture(self):
         image = Image.new('RGBA', (self.block_size, self.block_size), (255, 255, 255, 255))
         draw = ImageDraw.Draw(image)
         draw.rectangle([0, 0, self.block_size - 1, self.block_size - 1], outline="black", fill="white")
+
+        if self.model.waarde is not None:
+            try:
+                font = ImageFont.truetype("arial.ttf", 60)
+            except IOError:
+                font = ImageFont.load_default()
+
+            kleur = "blue" if self.model.waarde == "X" else "red"
+
+            draw.text(
+                (self.block_size // 2, self.block_size // 2),
+                text=self.model.waarde,
+                fill=kleur,
+                font=font,
+                anchor="mm"
+            )
+
+        self.current_drawn_value = self.model.waarde
 
         return arcade.Texture(image)
 
