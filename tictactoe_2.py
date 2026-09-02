@@ -16,6 +16,7 @@ class FieldModel:
 class TictactoeModel:
     current_player: str
     winner: str | None
+    board: list[list[FieldModel]]
 
     def __init__(self):
         self.board = [

@@ -60,7 +60,7 @@ class CircleView(arcade.Sprite):
 
 class SuperView:
     def __init__(self, model: CircleModel):
-        self.model:CircleModel = model
+        self.model: CircleModel = model
         self.sprites = arcade.SpriteList()
 #
         self.circleview = CircleView(self.model, 400, 400)
@@ -80,6 +80,26 @@ class SuperView:
     def draw(self):
         self.sprites.draw()
 
+class UIView:
+    manager: arcade.gui.UIManager
+    model: CircleModel
+    increase_button = arcade.gui.UIFlatButton
+    def __init__(self, model: CircleModel):
+        self.manager = arcade.gui.UIManager()
+        self.manager.enable()
+        self.model = model
+
+        self.increase_button = arcade.gui.UIFlatButton(text="Increase", width=150, height=40)
+
+        self.setup_layout()
+
+    def setup_layout(self):
+        anchor = arcade.gui.UIAnchorLayout()
+        anchor.add(self.increase_button, anchor_x="center_x", anchor_y="bottom", align_y=20)
+        self.manager.add(anchor)
+
+    def draw(self):
+        self.manager.draw()
 
 # --- CONTROLLER ---
 class GameController(arcade.Window):
@@ -87,30 +107,23 @@ class GameController(arcade.Window):
         super().__init__(400, 450, "MVC Cirkel en Punten", pixel_perfect=True)
         arcade.set_background_color(arcade.color.WHITE)
 
-        self.model:CircleModel = model
+        self.my_model: CircleModel = model
 
-        self.my_superview:SuperView = my_view
+        self.my_view: SuperView = my_view
+        self.ui_view: UIView = UIView(self.my_model)
 
-        self.manager = arcade.gui.UIManager()
-        self.manager.enable()
-
-        self.increase_button = arcade.gui.UIFlatButton(text="Increase", width=150, height=40)
-        anchor = arcade.gui.UIAnchorLayout()
-        anchor.add(self.increase_button, anchor_x="center_x", anchor_y="bottom", align_y=20)
-        self.manager.add(anchor)
-
-        @self.increase_button.event("on_click")
+        @self.ui_view.increase_button.event("on_click")
         def on_click_increase(event):
             self.increase()
 
     def increase(self):
-        self.model.increment()
-        self.my_superview.redraw()
+        self.my_model.increment()
+        self.my_view.redraw()
     #
     def on_draw(self):
         self.clear()
-        self.my_superview.draw()
-        self.manager.draw()
+        self.my_view.draw()
+        self.ui_view.draw()
 
 
 # --- STARTUP ---
